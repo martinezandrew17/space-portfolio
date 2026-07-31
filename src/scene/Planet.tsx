@@ -8,13 +8,13 @@
 // custom components needed.
 // ---------------------------------------------------------------------------
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";
 import type { SectionConfig } from "../data/sections";
 import { useNavigation } from "../hooks/useNavigation";
-import { colors, fonts } from "../styles/theme";
+import { colors } from "../styles/theme";
 
 interface PlanetProps {
   config: SectionConfig;
@@ -23,16 +23,21 @@ interface PlanetProps {
 export default function Planet({ config }: PlanetProps) {
   const pivotRef = useRef<THREE.Group>(null);
   const meshRef = useRef<THREE.Mesh>(null);
-  const [hovered, setHovered] = useState(false);
 
   const flyTo = useNavigation((s) => s.flyTo);
   const isFlying = useNavigation((s) => s.isFlying);
   const focusedSection = useNavigation((s) => s.focusedSection);
+  const hoveredSection = useNavigation((s) => s.hoveredSection);
+  const setHovered = useNavigation((s) => s.setHovered);
   const isFocused = focusedSection === config.key;
+  const hovered = hoveredSection === config.key;
 
   // Orbit revolution (pivot spins around the sun) + planet self-rotation.
+  // Orbits pause whenever any planet is focused, so CameraRig has a stable
+  // world position to fly to and the content panel isn't describing a
+  // planet that's still drifting across the screen.
   useFrame((_, delta) => {
-    if (pivotRef.current && config.orbitSpeed) {
+    if (pivotRef.current && config.orbitSpeed && !focusedSection) {
       pivotRef.current.rotation.y += config.orbitSpeed * delta;
     }
     if (meshRef.current) {
@@ -50,15 +55,16 @@ export default function Planet({ config }: PlanetProps) {
       <group position={[config.orbitRadius, 0, 0]}>
         <mesh
           ref={meshRef}
+          name={config.key}
           scale={hovered ? 1.12 : 1}
           onClick={handleClick}
           onPointerOver={(e) => {
             e.stopPropagation();
-            setHovered(true);
+            setHovered(config.key);
             document.body.style.cursor = "pointer";
           }}
           onPointerOut={() => {
-            setHovered(false);
+            setHovered(null);
             document.body.style.cursor = "default";
           }}
         >

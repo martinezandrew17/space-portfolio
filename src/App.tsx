@@ -1,17 +1,25 @@
+// ---------------------------------------------------------------------------
+// App.tsx — top-level composition.
+//
+// Assembles the 3D scene (Scene + Starfield + Planet/OrbitPath per section +
+// CameraRig) alongside the 2D UI overlay (Nav, ContentPanel, Tooltip), plus
+// the LoadingScreen splash on top of everything while it all initializes.
+// ---------------------------------------------------------------------------
+
 import Scene from "./scene/Scene";
 import Starfield from "./scene/Starfield";
 import Planet from "./scene/Planet";
 import OrbitPath from "./scene/OrbitPath";
 import CameraRig from "./scene/CameraRig";
+import Nav from "./components/Nav";
+import ContentPanel from "./components/ContentPanel";
+import Tooltip from "./components/Tooltip";
+import LoadingScreen from "./components/LoadingScreen";
 import { sections } from "./data/sections";
-import { useNavigation } from "./hooks/useNavigation";
 
 export default function App() {
-  const focusedSection = useNavigation((s) => s.focusedSection);
-  const flyHome = useNavigation((s) => s.flyHome);
-
   return (
-    <div className="h-screen w-screen relative">
+    <div className="h-screen w-screen relative overflow-hidden">
       <Scene>
         <Starfield />
         <CameraRig />
@@ -23,15 +31,10 @@ export default function App() {
         ))}
       </Scene>
 
-      {/* Temporary test overlay — real Nav.tsx / ContentPanel.tsx replace this soon */}
-      <div className="absolute top-6 left-6 text-white text-sm bg-black/40 px-4 py-2 rounded-lg">
-        <p>Focused: {focusedSection ?? "none (overview)"}</p>
-        {focusedSection && (
-          <button onClick={flyHome} className="mt-2 underline text-cyan-300">
-            ← Back to overview
-          </button>
-        )}
-      </div>
+      <Nav />
+      <ContentPanel />
+      <Tooltip />
+      <LoadingScreen />
     </div>
   );
 }
